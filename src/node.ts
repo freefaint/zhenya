@@ -43,7 +43,7 @@ app.use('/api3', function(req, res, next) {
 app.get('/api3', (req, res) => {
   const data = read();
 
-  res.send(data);
+  res.send(data.items);
 });
 
 app.post('/api3', (req, res) => {
