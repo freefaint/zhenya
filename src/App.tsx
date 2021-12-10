@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useMatch } from 'react-router-dom';
 import RecipeReviewCard from './components/card';
+import { Remove } from '@mui/icons-material';
 
 function App() {
   const match = useMatch('/:page');
@@ -45,6 +46,11 @@ const removeOrder = (body: any) => {
 }
 const patchOrder = (body: any) => {
   return fetch('/api3', { method: "PATCH", body: JSON.stringify(body), headers: { "Content-Type": 'application/json' } })
+    .then(resp => resp.json())
+    .catch(e => void 0);
+}
+const clearOrders = () => {
+  return fetch('/api3', { method: "DELETE", headers: { "Content-Type": 'application/json' } })
     .then(resp => resp.json())
     .catch(e => void 0);
 }
@@ -136,8 +142,16 @@ const Admin = () => {
         position: 'fixed',
         bottom: 16,
         right: 16,
-      }} color="secondary" onClick={() => setOpened(true)}>
+      }} color="primary" onClick={() => setOpened(true)}>
         <AddIcon />
+      </Fab>
+
+      <Fab sx={{
+        position: 'fixed',
+        bottom: 16,
+        right: 64,
+      }} color="secondary" onClick={clearOrders}>
+        <Remove />
       </Fab>
     </div>
   )

@@ -16,13 +16,15 @@ app.use(express.urlencoded({ extended: true }));
 
 const read = () => {
   try {
-    return (JSON.parse(readFileSync('./orders.json').toString()) as any[]).sort((a, b) => a.date > b.date ? -1 : a.date < b.date ? 1 : 0);
+    const data = JSON.parse(readFileSync('./orders.json').toString()) as { items: Record<string, any>[], count: number };
+
+    return { ...data, items: data.items.sort((a, b) => a.date > b.date ? -1 : a.date < b.date ? 1 : 0) };
   } catch {
-    return [];
+    return { items: [], count: 1 };
   }
 }
 
-const write = (data: Record<string, any>[]) => {
+const write = (data: { items: Record<string, any>[], count: number }) => {
   try {
     return writeFileSync('./orders.json', JSON.stringify(data));
   } catch {
@@ -47,14 +49,15 @@ app.get('/api3', (req, res) => {
 app.post('/api3', (req, res) => {
   const data = read();
 
-  write([ ...data, { ...req.body, number: data.length ? Math.max(...data.map((i: any) => i.number)) + 1 : 1, date: new Date().valueOf() } ]);
+  write({ items: [ ...data.items, { ...req.body, number: data.count, date: new Date().valueOf() } ], count: data.count + 1 });
 
   res.send({});
 });
 
 app.patch('/api3', (req, res) => {
   const data = read();
-  write(data.map((i: any) => i.number === req.body.number ? { ...i, ready: req.body.ready } : i ));
+
+  write({ ...data, items: data.items.map((i: any) => i.number === req.body.number ? { ...i, ready: req.body.ready } : i ) });
 
   res.send({});
 });
@@ -62,7 +65,13 @@ app.patch('/api3', (req, res) => {
 app.put('/api3', (req, res) => {
   const data = read();
 
-  write(data.filter((i: any) => i.number !== req.body.number ));
+  write({ ...data, items: data.items.filter((i: any) => i.number !== req.body.number ) });
+
+  res.send({});
+});
+
+app.delete('/api3', (req, res) => {
+  write({ items: [], count: 1 });
 
   res.send({});
 });
